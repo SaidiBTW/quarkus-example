@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.acme.reservation.inventory.Car;
 import org.acme.reservation.inventory.GraphQLInventoryClient;
@@ -17,6 +18,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 
 import io.quarkus.logging.Log;
 import io.smallrye.graphql.client.GraphQLClient;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -31,8 +33,10 @@ public class ReservationResource {
   private final InMemoryReservationsRepository reservationsRepo;
   private final RentalClient rentalClient;
 
-  ReservationResource(
+  @Inject
+  jakarta.ws.rs.core.SecurityContext context;
 
+  ReservationResource(
       InMemoryReservationsRepository reservationsRepository,
       @GraphQLClient("inventory") GraphQLInventoryClient inventoryClient,
       @RestClient RentalClient rentalClient) {
@@ -70,13 +74,21 @@ public class ReservationResource {
   @POST
   public Reservation make(Reservation reservation) {
     Reservation result = reservationsRepo.save(reservation);
-    // Dummy value for the time being
-    String userId = "x";
+    reservation.userId = context.getUserPrincipal() != null ? context.getUserPrincipal().getName() : "anonymous";
     if (reservation.startDay.equals(LocalDate.now())) {
-      Rental rental = rentalClient.start(userId, result.id);
+      Rental rental = rentalClient.start(result.userId, result.id);
       Log.info("Successfully started rental " + rental);
     }
     return result;
+  }
+
+  @GET
+  @Path("all")
+  public Collection<Reservation> allReservations() {
+    String userId = context.getUserPrincipal() != null ? context.getUserPrincipal().getName() : null;
+    return reservationsRepo.findAll().stream()
+        .filter(reservation -> userId == null || userId.equals(reservation.userId))
+        .collect(Collectors.toList());
   }
 
 }
