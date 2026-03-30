@@ -8,9 +8,9 @@ package inventory;
 
 message CarResponse {
   string license_plate_number = 1;
-  string manufacturer = 2;
-  string model = 3;
-  int64 id = 4;
+  string manufacturer         = 2;
+  string model                = 3;
+  int64  id                   = 4;
 }
 
 message RemoveCarRequest {
@@ -18,12 +18,12 @@ message RemoveCarRequest {
 }
 
 message InsertCarRequest {
-  string license_plate_number =1;
-  string manufacturer = 2;
-  string model = 3;
+  string license_plate_number = 1;
+  string manufacturer         = 2;
+  string model                = 3;
 }
 
 service InventoryService {
-  rpc add( InsertCarRequest) returns ( CarResponse) {}
-  rpc remove(RemoveCarRequest) returns (CarResponse) {}
+  rpc add(stream InsertCarRequest) returns ( stream CarResponse) {}
+  rpc remove( RemoveCarRequest) returns ( CarResponse) {}
 }

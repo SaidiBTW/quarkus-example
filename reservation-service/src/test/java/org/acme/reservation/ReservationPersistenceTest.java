@@ -10,23 +10,28 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 @QuarkusTest
-public class ReservationRepositoryTest {
+public class ReservationPersistenceTest {
 
   @Inject
   ReservationsRepository repository;
 
   @Test
+  @Transactional
   public void testCreateReservation() {
     Reservation reservation = new Reservation();
     reservation.startDay = LocalDate.now().plus(5, ChronoUnit.DAYS);
     reservation.endDay = LocalDate.now().plus(12, ChronoUnit.DAYS);
     reservation.carId = 384L;
-    repository.save(reservation);
+    reservation.persist();
 
     Assertions.assertNotNull(reservation.id);
-    Assertions.assertTrue(repository.findAll().contains(reservation));
+    Assertions.assertEquals(1, Reservation.count());
+    Reservation persistedReservation = Reservation.findById(reservation.id);
+    Assertions.assertNotNull(persistedReservation);
+    Assertions.assertEquals(reservation.carId, persistedReservation.carId);
   }
 
 }

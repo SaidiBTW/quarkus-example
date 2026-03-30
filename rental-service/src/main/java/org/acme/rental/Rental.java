@@ -1,44 +1,44 @@
 package org.acme.rental;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
-public class Rental {
-  private final Long id;
-  private final String userId;
-  private final Long reservationId;
-  private final LocalDate startDate;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
-  public Rental(Long id, String userId, Long reservationId, LocalDate startDate) {
-    this.id = id;
-    this.userId = userId;
-    this.reservationId = reservationId;
-    this.startDate = startDate;
-  }
+import io.quarkus.mongodb.panache.PanacheMongoEntity;
+import io.quarkus.mongodb.panache.common.MongoEntity;
 
-  public Long getId() {
-    return id;
-  }
+@MongoEntity(collection = "Rentals")
+public class Rental extends PanacheMongoEntity {
 
-  public String getUserId() {
-    return userId;
-  }
-
-  public Long getReservationId() {
-    return reservationId;
-  }
-
-  public LocalDate getStartDate() {
-    return startDate;
-  }
+  public String userId;
+  public Long reservationId;
+  public LocalDate startDate;
+  public LocalDate endDate;
+  @BsonProperty("rental-active")
+  public boolean active;
 
   @Override
   public String toString() {
     return "Rental{" +
-        "id=" + id +
-        ", userId='" + userId + '\'' +
+        "userId='" + userId + '\'' +
         ", reservationId=" + reservationId +
         ", startDate=" + startDate +
+        ", endDate=" + endDate +
+        ", active=" + active +
+        ", id=" + id +
         '}';
+  }
+
+  public static Optional<Rental> findByUserAnReservationIdsOptional(
+      String userId, Long reservationId) {
+    return find("userId =?1 and reservationId = ?2",
+        userId, reservationId).firstResultOptional();
+  }
+
+  public static List<Rental> listActive() {
+    return list("active", true);
   }
 
 }
