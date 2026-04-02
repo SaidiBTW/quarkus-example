@@ -18,6 +18,7 @@ public class Rental extends PanacheMongoEntity {
   public LocalDate endDate;
   @BsonProperty("rental-active")
   public boolean active;
+  public boolean paid;
 
   @Override
   public String toString() {
@@ -28,6 +29,7 @@ public class Rental extends PanacheMongoEntity {
         ", endDate=" + endDate +
         ", active=" + active +
         ", id=" + id +
+        ", paid=" + paid +
         '}';
   }
 
